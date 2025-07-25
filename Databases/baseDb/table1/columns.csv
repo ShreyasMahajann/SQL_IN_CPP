@@ -1,0 +1,5 @@
+column_name,data_type,index
+id,int,1
+name,varchar,2
+email,varchar,3
+created_at,timestamp,4
