@@ -3,7 +3,6 @@ id,int,1
 name,varchar,2
 email,varchar,3
 created_at,timestamp,4table_name,data_created
-table1,2020-01-01table_name,data_created
-table2,2020-01-01databases_name,data_created
+table1,2020-01-01databases_name,data_created
 baseDb,2021-07-01
 db1,2021-07-01
