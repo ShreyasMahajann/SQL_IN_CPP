@@ -1,132 +1,172 @@
-# DBMS in C++ - Simple Database Management System
+# DBMS in C++
 
-A simple database management system implementation in C++ that provides basic database and table operations with file-based storage.
+A file-based mini DBMS in C++ with an interactive CLI and a lightweight SQL parser.
+The system stores metadata and table data as CSV files inside the Databases folder.
 
-## Project Structure
+## Project Layout
 
-```
+```text
 SQL_IN_CPP/
-├── database.cpp           # Database class implementation
-├── database.h             # Database class header
-├── main.cpp              # Main application entry point
-├── table.cpp             # Table class implementation
-├── table.h               # Table class header
-├── Makefile              # Build configuration
-├── README.md             # Project documentation
-├── Databases/            # Database storage directory
-│   ├── information_schema.csv    # Database registry
-│   ├── baseDb/           # Default database
-│   │   ├── tables.csv    # Table registry for baseDb
-│   │   └── table1/       # Example table
-│   │       ├── columns.csv       # Column definitions
-│   │       └── data.csv          # Table data
-│   └── db1/              # Example user database
-│       ├── tables.csv    # Table registry for db1
-│       └── table2/       # Example table
-└── output/               # Build output directory
+  include/                # Header files
+  src/
+    caller/               # CLI entrypoint / callers
+    core/                 # Database + table core logic
+    handlers/             # SQL/query handlers (parser, joins)
+  tests/                  # Query test input files
+  docs/                   # Feature and SQL notes
+  tools/                  # Standalone experiments/utilities
+  Databases/              # Runtime storage (generated/updated at runtime)
+  output/                 # Build output artifacts
 ```
 
-## Features
+## What Is Implemented
 
-- **Database Management**: Create and manage multiple databases
-- **Table Operations**: Create tables with custom column definitions
-- **Data Types Support**: Support for INT32_t, FLOAT, STRING, BOOL, and TIMESTAMP
-- **File-based Storage**: Persistent storage using CSV files
-- **Automatic Initialization**: Creates necessary directories and files on startup
+- Multi-database management (create, select, list)
+- Table lifecycle operations (create, rename, truncate, drop, list)
+- Row insertion in two modes:
+  - positional insert
+  - insert with explicit column list (missing columns are stored as NULL)
+- Data type validation at insert time
+- SELECT queries with column projection
+- JOIN queries:
+  - INNER JOIN
+  - LEFT JOIN
+  - RIGHT JOIN
+  - FULL JOIN
+- SHOW commands:
+  - SHOW TABLES
+  - SHOW DATABASES
+- Automatic bootstrapping of required storage files/folders at startup
 
-## Supported Data Types
+## Supported SQL Commands
 
-The system supports the following data types mapped to integer IDs:
+The parser in src/handlers/sqlparser.cpp currently supports the following commands:
 
-| Data Type | ID |
-|-----------|----| 
-| INT32_t   | 1  |
-| FLOAT     | 2  |
-| STRING    | 3  |
-| BOOL      | 4  |
-| TIMESTAMP | 5  |
+### DDL
 
-## Core Classes
+- CREATE TABLE
+- RENAME TABLE ... TO ...
+- DROP TABLE
+- TRUNCATE TABLE
 
-### Database Class (database.h / database.cpp)
+### DML
 
-- **Constructor**: `Database(string dbName)` - Creates or loads a database
-- **Methods**:
-  - `tableExists(const string &tableName)` - Check if a table exists
-  - `currentDateTime()` - Generate timestamp strings
+- INSERT INTO table VALUES (...)
+- INSERT INTO table (col1, col2, ...) VALUES (...)
 
-### Table Class (table.h / table.cpp)
+### DQL
 
-Inherits from Database class and provides table-specific functionality:
+- SELECT * FROM table
+- SELECT col1, col2 FROM table
+- SELECT ... FROM table1 <JOIN_TYPE> JOIN table2 ON colA = colB
 
-- **Constructor**: `Table(string dbName, string tableName, vector<string> &columnName, vector<string> &type)`
-- **Methods**:
-  - `addRow(const vector<string> &rowData)` - Add data rows
-  - `displayTable()` - Display table structure and data
+### Utility
 
-## Building the Project
+- SHOW TABLES
+- SHOW DATABASES
 
-Use the provided `Makefile` to build the project:
+## Data Types
+
+The engine validates and stores these logical types:
+
+| SQL Type | Internal ID | Notes |
+|----------|-------------|-------|
+| INT      | 0           | Parsed with stoi |
+| FLOAT    | 1           | Parsed with stof |
+| BOOL     | 2           | Accepts TRUE/FALSE/1/0 |
+| BOOLEAN  | 2           | Alias of BOOL |
+| STRING   | 3           | Single-quoted strings supported |
+| DATE     | 4           | Expected format: YYYY-MM-DD |
+
+## CLI Flow
+
+The executable starts with:
+
+1. Initialization of Databases/information_schema.csv and Databases/baseDb
+2. Main menu:
+   - Create Database
+   - Select Database
+   - Show Databases
+   - Exit
+3. Table operations menu (after selecting a database):
+   - Create Table (via SQL)
+   - Show Tables
+   - Run SQL Query loop
+
+## Build and Run
 
 ```bash
-# Build the project
+# Build
 make
 
-# Clean build files
+# Run
+./main
+
+# Clean object files and binary
 make clean
+
+# Reset persisted database folder
+make reset
 ```
 
-## Usage
+On Windows, run the produced executable directly (for example main.exe).
 
-The main application (main.cpp) demonstrates basic usage:
+## Example Queries
 
-1. **System Initialization**: The `initializeDatabaseSystem()` function sets up the required directory structure and files
-2. **Database Creation**: Create database instances using the Database constructor
-3. **Table Creation**: Create tables with defined columns and data types
+```sql
+CREATE TABLE users (id INT, name STRING, age INT, is_active BOOL);
+CREATE TABLE departments (id INT, department_name STRING);
 
-### Example Usage
+INSERT INTO users (1, 'Alice', 30, TRUE);
+INSERT INTO users (id, name) VALUES (2, 'Bob');
 
-```cpp
-// Initialize the database system
-initializeDatabaseSystem();
+SELECT * FROM users;
+SELECT id, name FROM users;
 
-// Create a database
-Database db("exampleDB");
+SELECT * FROM users INNER JOIN departments ON id = id;
+SELECT * FROM users LEFT JOIN departments ON id = id;
 
-// Create a table
-vector<string> columnNames = {"id", "name", "age"};
-vector<string> columnTypes = {"INT32_t", "STRING", "INT32_t"};
-Table table("exampleDB", "exampleTable", columnNames, columnTypes);
+SHOW TABLES;
+SHOW DATABASES;
 
-// Add data
-table.addRow({"1", "Alice", "30"});
-table.addRow({"2", "Bob", "25"});
-
-// Display table
-table.displayTable();
+RENAME TABLE users TO app_users;
+TRUNCATE TABLE app_users;
+DROP TABLE app_users;
 ```
 
-## File Storage Structure
+## Storage Layout
 
-- **`Databases/information_schema.csv`**: Tracks all databases in the system
-- **Database directories**: Each database has its own folder under `Databases/`
-- **`tables.csv`**: Each database contains a registry of its tables
-- **Table directories**: Each table has its own folder with:
-  - `columns.csv`: Column definitions and metadata
-  - `data.csv`: Actual table data
+```text
+Databases/
+  information_schema.csv            # database_name,date_created
+  <db_name>/
+    tables.csv                      # table_name,date_created
+    <table_name>/
+      columns.csv                   # col_name,data_type
+      data.csv                      # raw rows
+```
 
-## Getting Started
+## Current Limitations
 
-1. Clone or download the project
-2. Run `make` to build the executable
-3. Execute the generated executable to start the application
-4. The system will automatically create the necessary directory structure
+These are present in helper docs or placeholders but not implemented in active execution flow yet:
 
-## Dependencies
+- WHERE, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET, DISTINCT
+- UPDATE and DELETE
+- ALTER TABLE
+- CROSS JOIN and SELF JOIN (commented placeholders)
+- PK/FK/constraint enforcement
 
-- C++11 or higher
-- Standard C++ libraries (filesystem, iostream, fstream, etc.)
-- Compatible with g++ compiler
+Notes:
 
-This project provides a foundation for understanding database management concepts and file-based storage systems in C++.
+- Table and column identifiers are normalized to lowercase by the parser.
+- JOIN queries print a temporary joined table result and then drop that temp table.
+
+## Key Source Files
+
+- src/caller/main.cpp: menu-driven CLI
+- src/handlers/sqlparser.cpp: query parsing and dispatch
+- src/core/database.cpp: database creation/selection/listing
+- src/core/table.cpp: table creation, insert, display, rename, drop, truncate
+- src/handlers/join.cpp: inner/left/right/full join execution
+- src/core/globals.cpp: datatype mappings and timestamp helper
 
