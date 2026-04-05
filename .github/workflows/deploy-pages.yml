@@ -1,0 +1,51 @@
+name: Build and Publish GitHub Pages Site
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+
+      - name: Build WebAssembly app
+        run: |
+          mkdir -p site
+          em++ -std=c++17 -O2 \
+            -I./include \
+            src/caller/main.cpp \
+            src/core/globals.cpp \
+            src/core/database.cpp \
+            src/core/table.cpp \
+            src/handlers/sqlparser.cpp \
+            src/handlers/join.cpp \
+            -sWASM=1 \
+            -sALLOW_MEMORY_GROWTH=1 \
+            -sFORCE_FILESYSTEM=1 \
+            -sEXIT_RUNTIME=0 \
+            --preload-file Databases@/Databases \
+            -o site/index.html
+
+          # Prevent GitHub Pages from treating files/folders as Jekyll content.
+          touch site/.nojekyll
+
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site

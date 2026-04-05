@@ -111,6 +111,36 @@ make reset
 
 On Windows, run the produced executable directly (for example main.exe).
 
+## Run in Browser via GitHub Pages
+
+This repo can be deployed as an interactive WebAssembly app on GitHub Pages.
+
+### What is included
+
+- A workflow at `.github/workflows/deploy-pages.yml`
+- Automatic build on push to `main`/`master` and manual run support
+- C++ sources compiled with Emscripten to `index.html + .js + .wasm`
+- `Databases/` preloaded into the browser filesystem at startup
+
+### First-time setup in your GitHub repo
+
+1. Push this repository (including the workflow) to GitHub.
+2. Open your repository on GitHub.
+3. Go to **Settings -> Pages**.
+4. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
+5. Set **Branch** to `gh-pages` and folder to `/(root)`.
+6. Go to the **Actions** tab and run (or wait for) **Build and Publish GitHub Pages Site**.
+
+After deployment, your app will be available at:
+
+`https://<your-username>.github.io/<your-repo-name>/`
+
+### Interaction notes
+
+- The app runs fully in-browser as WebAssembly.
+- Since this is a CLI program, inputs are requested through browser prompt dialogs.
+- Runtime file changes are in browser memory for that session and are not pushed back to GitHub.
+
 ## Example Queries
 
 ```sql
