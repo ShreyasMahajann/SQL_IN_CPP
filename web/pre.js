@@ -15,6 +15,10 @@ var Module = Module || {};
     writeToTerminal(String(text) + "\n");
   };
 
+  Module.onAbort = function (reason) {
+    writeToTerminal("\n[Runtime abort] " + String(reason || "Unknown error") + "\n");
+  };
+
   Module.stdout = function (chr) {
     if (chr === null || chr === undefined) return;
     writeToTerminal(String.fromCharCode(chr));

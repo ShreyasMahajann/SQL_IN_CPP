@@ -14,19 +14,15 @@ using namespace std;
 
 #ifdef __EMSCRIPTEN__
 EM_ASYNC_JS(char*, webReadLineRaw, (), {
-  return Asyncify.handleSleep((wakeUp) => {
     if (typeof window.awaitInputLine !== "function") {
-      wakeUp(0);
-      return;
+        return 0;
     }
-    window.awaitInputLine().then((value) => {
-      const text = String(value || "");
-      const len = lengthBytesUTF8(text) + 1;
-      const ptr = _malloc(len);
-      stringToUTF8(text, ptr, len);
-      wakeUp(ptr);
-    });
-  });
+    const value = await window.awaitInputLine();
+    const text = String(value || "");
+    const len = lengthBytesUTF8(text) + 1;
+    const ptr = _malloc(len);
+    stringToUTF8(text, ptr, len);
+    return ptr;
 });
 #endif
 
@@ -154,6 +150,9 @@ void mainMenu() {
 }
 
 int main() {
+    cout.setf(ios::unitbuf);
+    cerr.setf(ios::unitbuf);
+
     initializeDatabaseSystem();
     cout << "Database system initialized." << endl;
     mainMenu();

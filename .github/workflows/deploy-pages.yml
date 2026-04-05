@@ -16,9 +16,35 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      EM_CACHE: ${{ github.workspace }}/.cache/emscripten
+      EM_COMPILER_WRAPPER: ccache
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
+      - name: Restore Emscripten cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.cache/emscripten
+          key: ${{ runner.os }}-emscripten-cache-v1
+
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-${{ hashFiles('src/**/*.cpp', 'include/**/*.h', '.github/workflows/deploy-pages.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      - name: Ensure ccache is available
+        run: |
+          if ! command -v ccache >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ccache
+          fi
+          ccache --max-size=300M
+          ccache --zero-stats
 
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
@@ -39,6 +65,8 @@ jobs:
             -sFORCE_FILESYSTEM=1 \
             -sEXIT_RUNTIME=0 \
             -sASYNCIFY \
+            -sASYNCIFY_IMPORTS=webReadLineRaw \
+            -sASYNCIFY_STACK_SIZE=32768 \
             --shell-file web/shell.html \
             --pre-js web/pre.js \
             --preload-file Databases@/Databases \
@@ -46,6 +74,9 @@ jobs:
 
           # Prevent GitHub Pages from treating files/folders as Jekyll content.
           touch site/.nojekyll
+
+      - name: Show ccache stats
+        run: ccache --show-stats
 
       - name: Publish to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
