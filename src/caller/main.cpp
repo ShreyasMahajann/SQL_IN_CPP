@@ -6,6 +6,58 @@
 
 using namespace std;
 
+<<<<<<< Updated upstream
+=======
+#ifdef __EMSCRIPTEN__
+EM_ASYNC_JS(char*, webReadLineRaw, (), {
+  return Asyncify.handleSleep((wakeUp) => {
+    if (typeof window.awaitInputLine !== "function") {
+      wakeUp(0);
+      return;
+    }
+    window.awaitInputLine().then((value) => {
+      const text = String(value || "");
+      const len = lengthBytesUTF8(text) + 1;
+      const ptr = _malloc(len);
+      stringToUTF8(text, ptr, len);
+      wakeUp(ptr);
+    });
+  });
+});
+#endif
+
+static string readLinePrompt(const string& prompt) {
+    cout << prompt;
+    cout.flush();
+#ifdef __EMSCRIPTEN__
+    char* raw = webReadLineRaw();
+    if (raw == nullptr) {
+        return "";
+    }
+    string line(raw);
+    free(raw);
+    return line;
+#else
+    string line;
+    getline(cin, line);
+    return line;
+#endif
+}
+
+static int readIntPrompt(const string& prompt) {
+    while (true) {
+        string line = readLinePrompt(prompt);
+        stringstream ss(line);
+        int value;
+        char extra;
+        if ((ss >> value) && !(ss >> extra)) {
+            return value;
+        }
+        cerr << "Invalid choice. Try again.\n";
+    }
+}
+
+>>>>>>> Stashed changes
 void sqlQueryMenu(Database& db) {
     while (true) {
         cout << "\nEnter SQL Query (or type EXIT to go back):\nSQL> ";

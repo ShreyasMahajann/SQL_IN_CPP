@@ -38,6 +38,8 @@ jobs:
             -sALLOW_MEMORY_GROWTH=1 \
             -sFORCE_FILESYSTEM=1 \
             -sEXIT_RUNTIME=0 \
+            --shell-file web/shell.html \
+            --pre-js web/pre.js \
             --preload-file Databases@/Databases \
             -o site/index.html
 
