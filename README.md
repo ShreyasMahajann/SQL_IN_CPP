@@ -99,6 +99,9 @@ The executable starts with:
 # Build
 make
 
+# Optional: include mongo-c-driver libs if you need that integration
+make USE_MONGO=1
+
 # Run
 ./main
 
