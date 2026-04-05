@@ -66,41 +66,6 @@ void sqlQueryMenu(Database& db) {
     }
 }
 
-void tableOperationsMenu(Database& db) {
-    while (true) {
-        cout << "\nTable Operations Menu:\n";
-        cout << "1. Create Table\n";
-        cout << "2. Show Tables\n";
-        cout << "3. Run SQL Query\n";
-        cout << "4. Back to Main Menu\n";
-        int choice = readIntPrompt("Enter your choice: ");
-
-        switch (choice) {
-        case 1:
-            {
-                cout << "Enter SQL CREATE TABLE query:\n";
-                string query = readLinePrompt("SQL> ");
-                SQLParser::executeQuery(db, query);
-            }
-            break;
-
-        case 2:
-            db.displayTables();
-            break;
-
-        case 3:
-            sqlQueryMenu(db); // Call SQL Query Menu
-            break;
-
-        case 4:
-            return; // Go back to Main Menu
-
-        default:
-            cerr << "Invalid choice. Try again.\n";
-        }
-    }
-}
-
 void mainMenu() {
     string dbName;
     Database db;
@@ -129,7 +94,7 @@ void mainMenu() {
             db = selectDatabase(dbName);
             if (db.isValid()) {
                 cout << "Database '" << dbName << "' selected successfully." << endl;
-                tableOperationsMenu(db); // Enter Table Operations Menu
+                sqlQueryMenu(db);
             } else {
                 cerr << "Failed to select database '" << dbName << "'." << endl;
             }

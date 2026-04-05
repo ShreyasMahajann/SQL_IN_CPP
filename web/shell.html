@@ -37,6 +37,18 @@
       gap: 10px;
     }
 
+    .disclaimer {
+      position: fixed;
+      left: 16px;
+      top: 42%;
+      width: 220px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      user-select: none;
+      pointer-events: none;
+    }
+
     .title {
       color: var(--muted);
       font-size: 13px;
@@ -91,6 +103,12 @@
     }
 
     @media (max-width: 640px) {
+      .disclaimer {
+        position: static;
+        width: auto;
+        padding: 10px;
+      }
+
       .app {
         padding: 10px;
       }
@@ -106,6 +124,7 @@
   </style>
 </head>
 <body>
+  <div class="disclaimer">Disclaimer: The parser will run after a database is selected.</div>
   <div class="app">
     <div class="title">SQL Parser</div>
     <pre id="terminal"></pre>
