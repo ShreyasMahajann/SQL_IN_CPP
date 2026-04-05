@@ -139,7 +139,8 @@ After deployment, your app will be available at:
 
 - The app runs fully in-browser as WebAssembly.
 - The deployed page uses a minimal terminal-like UI (output pane + single input line).
-- Press Enter in the input box to send one line to the C++ stdin stream.
+- Input is captured asynchronously from the on-page terminal box (no browser prompt popups).
+- Press Enter in the input box to send one full line to the running program.
 - Runtime file changes are in browser memory for that session and are not pushed back to GitHub.
 
 ## Example Queries

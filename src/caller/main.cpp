@@ -3,11 +3,15 @@
 #include "sqlparser.h"
 #include <iostream>
 #include <string>
+#include <sstream>
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <cstdlib>
+#endif
 
 using namespace std;
 
-<<<<<<< Updated upstream
-=======
 #ifdef __EMSCRIPTEN__
 EM_ASYNC_JS(char*, webReadLineRaw, (), {
   return Asyncify.handleSleep((wakeUp) => {
@@ -57,35 +61,29 @@ static int readIntPrompt(const string& prompt) {
     }
 }
 
->>>>>>> Stashed changes
 void sqlQueryMenu(Database& db) {
     while (true) {
-        cout << "\nEnter SQL Query (or type EXIT to go back):\nSQL> ";
-        string query;
-        getline(cin, query);
+        cout << "\nEnter SQL Query (or type EXIT to go back):\n";
+        string query = readLinePrompt("SQL> ");
         if (query == "EXIT") break;
         SQLParser::executeQuery(db, query);
     }
 }
 
 void tableOperationsMenu(Database& db) {
-    int choice;
     while (true) {
         cout << "\nTable Operations Menu:\n";
         cout << "1. Create Table\n";
         cout << "2. Show Tables\n";
         cout << "3. Run SQL Query\n";
         cout << "4. Back to Main Menu\n";
-        cout << "Enter your choice: ";
-        cin >> choice;
-        cin.ignore(); // Prevent input buffer issues
+        int choice = readIntPrompt("Enter your choice: ");
 
         switch (choice) {
         case 1:
-            cout << "Enter SQL CREATE TABLE query:\nSQL> ";
             {
-                string query;
-                getline(cin, query);
+                cout << "Enter SQL CREATE TABLE query:\n";
+                string query = readLinePrompt("SQL> ");
                 SQLParser::executeQuery(db, query);
             }
             break;
@@ -108,7 +106,6 @@ void tableOperationsMenu(Database& db) {
 }
 
 void mainMenu() {
-    int choice;
     string dbName;
     Database db;
 
@@ -118,14 +115,11 @@ void mainMenu() {
         cout << "2. Select Database\n";
         cout << "3. Show Databases\n";
         cout << "4. Exit\n";
-        cout << "Enter your choice: ";
-        cin >> choice;
-        cin.ignore();
+        int choice = readIntPrompt("Enter your choice: ");
 
         switch (choice) {
         case 1:
-            cout << "Enter database name: ";
-            cin >> dbName;
+            dbName = readLinePrompt("Enter database name: ");
             db = createDatabase(dbName);
             if (db.isValid()) {
                 cout << "Database created successfully." << endl;
@@ -135,8 +129,7 @@ void mainMenu() {
             break;
 
         case 2:
-            cout << "Enter database name: ";
-            cin >> dbName;
+            dbName = readLinePrompt("Enter database name: ");
             db = selectDatabase(dbName);
             if (db.isValid()) {
                 cout << "Database '" << dbName << "' selected successfully." << endl;

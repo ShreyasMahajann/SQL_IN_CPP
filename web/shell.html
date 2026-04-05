@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SQL_IN_CPP Web Terminal</title>
+  <title>SQL Parser</title>
   <style>
     :root {
       --bg: #0b0f10;
@@ -107,7 +107,7 @@
 </head>
 <body>
   <div class="app">
-    <div class="title">SQL_IN_CPP browser terminal</div>
+    <div class="title">SQL Parser</div>
     <pre id="terminal"></pre>
     <div class="input-row">
       <span class="prompt">&gt;</span>
@@ -118,6 +118,9 @@
 
   <script>
     (function () {
+      var inputQueue = [];
+      var waiters = [];
+
       function getTerminal() {
         return document.getElementById("terminal");
       }
@@ -129,7 +132,24 @@
         term.scrollTop = term.scrollHeight;
       };
 
-      window.consumeInputLine = null;
+      window.consumeInputLine = function consumeInputLine(value) {
+        if (waiters.length > 0) {
+          var resolve = waiters.shift();
+          resolve(value);
+          return;
+        }
+        inputQueue.push(value);
+      };
+
+      window.awaitInputLine = function awaitInputLine() {
+        return new Promise(function (resolve) {
+          if (inputQueue.length > 0) {
+            resolve(inputQueue.shift());
+            return;
+          }
+          waiters.push(resolve);
+        });
+      };
 
       window.addEventListener("DOMContentLoaded", function () {
         var stdin = document.getElementById("stdin");
@@ -141,6 +161,8 @@
 
           var value = stdin.value;
           stdin.value = "";
+
+          window.appendTerminalText(value + "\n");
 
           if (typeof window.consumeInputLine === "function") {
             window.consumeInputLine(value);
