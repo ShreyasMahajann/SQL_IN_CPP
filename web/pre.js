@@ -1,9 +1,13 @@
 var Module = Module || {};
 
 (function () {
+  function stripAnsi(text) {
+    return String(text).replace(/\x1b\[[0-9;]*m/g, "");
+  }
+
   function writeToTerminal(text) {
     if (typeof window !== "undefined" && typeof window.appendTerminalText === "function") {
-      window.appendTerminalText(text);
+      window.appendTerminalText(stripAnsi(text));
     }
   }
 

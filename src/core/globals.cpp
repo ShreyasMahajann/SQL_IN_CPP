@@ -31,7 +31,14 @@ string currentDateTime()
     return string(buf);
 }
 
+#ifdef __EMSCRIPTEN__
+const string RESET = "";
+const string RED = "";
+const string GREEN = "";
+const string ORANGE = "";
+#else
 const string RESET = "\033[0m";
 const string RED = "\033[31m";
 const string GREEN = "\033[32m";
 const string ORANGE = "\033[33m";
+#endif
